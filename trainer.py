@@ -93,7 +93,8 @@ class trainer(object):
         # Now convert the list of floats to a numpy array, then to a PyTorch tensor
         weights_array = np.array(weights).astype(np.float32)  # Ensuring the correct dtype
         weights_tensor = torch.tensor(weights_array).to(self.device)
-        self.cross_entropy = torch.nn.CrossEntropyLoss(weight=weights_tensor)
+        # self.cross_entropy = torch.nn.CrossEntropyLoss(weight=weights_tensor)
+        self.cross_entropy = torch.nn.CrossEntropyLoss()
 
         best_acc = 0
         best_f1 = 0
@@ -124,7 +125,7 @@ class trainer(object):
                 for key, val in losses.items():
                     loss_avg_meters[key].update(val, self.hparams["batch_size"])
 
-            self.evaluate(model, self.val_dl)
+            self.evaluate(model, self.train_dl)
             tr_acc, tr_f1 = self.calc_results_per_run()
             # logging
             self.logger.debug(f'[Epoch : {epoch}/{self.hparams["num_epochs"]}]')

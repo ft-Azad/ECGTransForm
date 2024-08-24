@@ -34,31 +34,31 @@ class ecgTransForm(nn.Module):
             nn.MaxPool1d(kernel_size=2, stride=2, padding=1),
         )
         
-        self.inplanes = 128
-        self.crm = self._make_layer(SEBasicBlock, 128, 3)
+        # self.inplanes = 128
+        # self.crm = self._make_layer(SEBasicBlock, 128, 3)
 
-        self.encoder_layer = nn.TransformerEncoderLayer(d_model=configs.trans_dim, nhead=configs.num_heads, batch_first=True)
-        self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, num_layers=3)
+        # self.encoder_layer = nn.TransformerEncoderLayer(d_model=configs.trans_dim, nhead=configs.num_heads, batch_first=True)
+        # self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, num_layers=3)
 
-        self.aap = nn.AdaptiveAvgPool1d(1)
-        self.clf = nn.Linear(hparams["feature_dim"], configs.num_classes)
+        # self.aap = nn.AdaptiveAvgPool1d(1)
+        self.clf = nn.Linear(configs.final_out_channels*25, configs.num_classes)
 
-    def _make_layer(self, block, planes, blocks, stride=1):  # makes residual SE block
-        downsample = None
-        if stride != 1 or self.inplanes != planes * block.expansion:
-            downsample = nn.Sequential(
-                nn.Conv1d(self.inplanes, planes * block.expansion,
-                          kernel_size=1, stride=stride, bias=False),
-                nn.BatchNorm1d(planes * block.expansion),
-            )
+    # def _make_layer(self, block, planes, blocks, stride=1):  # makes residual SE block
+    #     downsample = None
+    #     if stride != 1 or self.inplanes != planes * block.expansion:
+    #         downsample = nn.Sequential(
+    #             nn.Conv1d(self.inplanes, planes * block.expansion,
+    #                       kernel_size=1, stride=stride, bias=False),
+    #             nn.BatchNorm1d(planes * block.expansion),
+    #         )
 
-        layers = []
-        layers.append(block(self.inplanes, planes, stride, downsample))
-        self.inplanes = planes * block.expansion
-        for i in range(1, blocks):
-            layers.append(block(self.inplanes, planes))
+    #     layers = []
+    #     layers.append(block(self.inplanes, planes, stride, downsample))
+    #     self.inplanes = planes * block.expansion
+    #     for i in range(1, blocks):
+    #         layers.append(block(self.inplanes, planes))
 
-        return nn.Sequential(*layers)
+    #     return nn.Sequential(*layers)
 
     def forward(self, x_in):
 
@@ -74,14 +74,14 @@ class ecgTransForm(nn.Module):
         x = self.conv_block3(x)
 
         # Channel Recalibration Module
-        x = self.crm(x)
+        # x = self.crm(x)
 
-        # Bi-directional Transformer
-        x1 = self.transformer_encoder(x)
-        x2 = self.transformer_encoder(torch.flip(x,[2]))
-        x = x1+x2
+        # # Bi-directional Transformer
+        # x1 = self.transformer_encoder(x)
+        # x2 = self.transformer_encoder(torch.flip(x,[2]))
+        # x = x1+x2
 
-        x = self.aap(x)
+        # x = self.aap(x)
         x_flat = x.reshape(x.shape[0], -1)
         x_out = self.clf(x_flat)
         return x_out
